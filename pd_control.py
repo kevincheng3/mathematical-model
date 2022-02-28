@@ -97,11 +97,11 @@ class Controller():
         # print(pos_torque, vel_torque)
         # return pos_torque + vel_torque
 
-    def apply_torque_jacobian(self, id, desired_pos, desired_vel, kp=20, kv=0.01 ):
+    def apply_torque_jacobian(self, id, desired_pos, desired_vel, fd_torque = 0, kp=20, kv=0.01 ):
         pos_torque = - kp * ( - desired_pos)
         vel_torque = - kv * (self.sim.data.qvel[id+3] - desired_vel)
 
-        self.sim.data.ctrl[id] = pos_torque + vel_torque
+        self.sim.data.ctrl[id] = pos_torque + vel_torque + fd_torque
 
     
 
@@ -122,7 +122,8 @@ def main():
     delta_t = 0.0002
     n_inters = 999
     n_fingers = 4
-
+    finger_v = 0.05
+    finger_f = 0.1
 
     for i in range (n_inters+1):
         for j in range(n_fingers):
@@ -151,31 +152,54 @@ def main():
         viewer.render()
 
     # while 1:
-    for i in range(5000):
-        v = np.array([0.0, -0.008, 0.0])
-        theta = np.zeros((n_fingers, 4))
-        for j in range(n_fingers):
-            theta = np.linalg.pinv(jacobian(j, sim.data.qpos[3 + 4 * j], sim.data.qpos[4 + 4 * j], sim.data.qpos[5  + 4 * j], sim.data.qpos[6  + 4 * j])).dot(v)
-            for k in range(4):
-                if k == 0:
-                    hand.apply_torque_jacobian(k + 4 * j, theta[k] * delta_t, theta[k], kp=10, kv = 0.01)
-                else: 
-                    hand.apply_torque_jacobian(k + 4 * j, theta[k] * delta_t, theta[k])
+    # for i in range(5000):
+    #     v = np.array([0.0, -finger_v, 0.0])
+    #     theta = np.zeros((n_fingers, 4))
+    #     for j in range(n_fingers):
+    #         theta = np.linalg.pinv(jacobian(j, sim.data.qpos[3 + 4 * j], sim.data.qpos[4 + 4 * j], sim.data.qpos[5  + 4 * j], sim.data.qpos[6  + 4 * j])).dot(v)
+    #         if j ==0:
+    #             f = np.array([-finger_f, 0, 0])
+    #         elif j ==1:
+    #             f = np.array([0, -finger_f, 0])
+    #         elif j ==2:
+    #             f = np.array([finger_f, 0, 0])
+    #         elif j ==3:
+    #             f = np.array([0, finger_f, 0])
 
-        sim.step()
-        viewer.render()
+    #         feedforward_torque = jacobian(j, sim.data.qpos[3 + 4 * j], sim.data.qpos[4 + 4 * j], sim.data.qpos[5  + 4 * j], sim.data.qpos[6  + 4 * j]).T.dot(f)
+    #         # print(feedforward_torque)
+    #         for k in range(4):
+    #             if k == 0:
+    #                 hand.apply_torque_jacobian(k + 4 * j, theta[k] * delta_t, theta[k], feedforward_torque[k], kp=10, kv = 0.01)
+    #             else: 
+    #                 hand.apply_torque_jacobian(k + 4 * j, theta[k] * delta_t, theta[k],  feedforward_torque[k])
+
+    #     sim.step()
+    #     viewer.render()
 
     for i in range(100000):
-        v = np.array([0.008 * cos(i / (1000 * np.pi)) , 0.008 * sin(i / (1000 * np.pi)), 0.0])
+        v = np.array([finger_v * cos(i / (100 * np.pi)) , finger_v * sin(i / (100 * np.pi)), 0.0])
         # print(v)
         theta = np.zeros((n_fingers, 4))
         for j in range(n_fingers):
             theta = np.linalg.pinv(jacobian(j, sim.data.qpos[3 + 4 * j], sim.data.qpos[4 + 4 * j], sim.data.qpos[5  + 4 * j], sim.data.qpos[6  + 4 * j])).dot(v)
             for k in range(4):
+                if j ==0:
+                    f = np.array([-finger_f, 0, 0])
+                elif j ==1:
+                    f = np.array([0, -finger_f, 0])
+                elif j ==2:
+                    f = np.array([finger_f, 0, 0])
+                elif j ==3:
+                    f = np.array([0, finger_f, 0])
+
+                feedforward_torque = jacobian(j, sim.data.qpos[3 + 4 * j], sim.data.qpos[4 + 4 * j], sim.data.qpos[5  + 4 * j], sim.data.qpos[6  + 4 * j]).T.dot(f)
+                # print(feedforward_torque)
+
                 if k == 0:
-                    hand.apply_torque_jacobian(k + 4 * j, theta[k] * delta_t, theta[k], kp=10, kv = 0.01)
+                    hand.apply_torque_jacobian(k + 4 * j, theta[k] * delta_t, theta[k], feedforward_torque[k], kp=10, kv = 0.01)
                 else: 
-                    hand.apply_torque_jacobian(k + 4 * j, theta[k] * delta_t, theta[k])
+                    hand.apply_torque_jacobian(k + 4 * j, theta[k] * delta_t, theta[k], feedforward_torque[k])
 
 
         sim.step()
