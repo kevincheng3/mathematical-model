@@ -1,0 +1,123 @@
+<!--
+Problem: A planar box grasp for 4 fingers hand
+Contact model: frictionless contact model
+Usage: Verify the theory of grasping
+Author: shaowencheng@zju.edu.cn
+-->
+<!-- rgb2=".0666666 .17647 .30588" -->
+<mujoco model = "planar box">
+    <compiler inertiafromgeom="true"/>
+    <option timestep='0.0002' iterations='1000' solver='PGS' gravity='0 0 -9.8'/>
+    <default>
+        <geom rgba = " 0.2 0.2 0.2 1" condim="1" friction= "1 0 0" solref='0.008 0.4'/>
+        <joint limited="true" range="0 90" damping="0.05"/>
+        <!-- <position /> -->
+        <site rgba="0 0 0 0"/>
+        <position kp="100" ctrllimited = "true" ctrlrange="0 1.57"/>
+    </default>
+
+    <asset>
+    <texture name="sky_tex"     type="skybox"   builtin="flat" width="100" height="100" rgb1="0.97647 0.96862745 0.96862745"/>
+        <texture name="floor_tex" type="2d" builtin="checker" rgb1="0.8588235 .8862745 .9372549" rgb2=".0666666 .17647 .30588" width="20" height="20" />
+        <material name='floor_mat'  texture="floor_tex"  shininess="0.8" texrepeat="5 5" specular="0.7"  reflectance="0.5" />
+    </asset>
+
+    <worldbody>
+        <light name="light3" directional="true" pos="1 -1 3" />
+        <geom name='floor' material="floor_mat" pos='0 0 0' size='1 1 0.1'  type='plane' rgba = "1 1 1 1"/>
+        
+        <body name="box" pos = "0 0 0.07">
+            <geom type = "box" size = "0.02 0.02 0.015" rgba = "0 0.70588 0.8470588 1"/>
+            <joint name = "x_slide" type="slide" axis = "1 0 0" limited="false"/>
+            <joint name = "y_slide" type="slide" axis = "0 1 0" limited="false"/>
+            <joint name = "z_hinge" type="hinge" axis = "0 0 1" limited="false"/>
+        </body>
+        <body name = "hand" pos = " 0 0 0.005">
+            <geom name = "palm" type = "cylinder" size = "0.03 0.005"/>
+            <!-- in the +x direction -->
+            <body name = "finger00" pos = "0.04 0 0">
+                <joint name="joint04" type="hinge" axis="0 0 1" range="-45 45"/>
+                <joint name="joint00" type="hinge" axis="0 -1 0"/>
+                
+                <geom name = "link00" type = "capsule" size = "0.005 0.01" pos = "0.015 0 0 " euler = "0 90 0"/>
+                <body name = "finger01" pos = "0.03 0 0">
+                    <joint name="joint01" type="hinge" axis="0 -1 0"/>
+                    <geom name = "link01" type = "capsule" size = "0.005 0.01" pos = "0.015 0 0 " euler = "0 90 0"/>
+                    <body name = "finger02" pos = "0.03 0 0">
+                        <joint name="joint02" type="hinge" axis="0 -1 0"/>
+                        <geom name = "link02" type = "capsule" size = "0.005 0.01" pos = "0.015 0 0 " euler = "0 90 0"/>
+                        <site name="fingertip" pos = "0.03 0 0" rgba ="1 1 1 1"/>
+                    </body>
+                </body>
+            </body>
+            <!-- in the +y direction -->
+            <body name = "finger10" pos = "0.00 0.04 0">
+                <joint name="joint14" type="hinge" axis="0 0 1" range="-45 45"/>
+                <joint name="joint10" type="hinge" axis="1 0 0" />
+                <geom name = "link10" type = "capsule" size = "0.005 0.01" pos = "0 0.015 0" euler = "-90 0 0"/>
+                <body name = "finger11" pos = "0 0.03 0">
+                    <joint name="joint11" type="hinge" axis="1 0 0"/>
+                    <geom name = "link11" type = "capsule" size = "0.005 0.01" pos = "0 0.015 0" euler = "-90 0 0"/>
+                    <body name = "finger12" pos = "0 0.03 0">
+                        <joint name="joint12" type="hinge" axis="1 0 0"/>
+                        <geom name = "link12" type = "capsule" size = "0.005 0.01" pos = "0 0.015 0" euler = "-90 0 0"/>
+                    </body>
+                </body>
+            </body>
+            <!-- in the -x direction -->
+            <body name = "finger20" pos = "-0.04 0 0">
+                <joint name="joint24" type="hinge" axis="0 0 1" range="-45 45"/>
+                <joint name="joint20" type="hinge" axis="0 1 0"/>
+                <geom name = "link20" type = "capsule" size = "0.005 0.01" pos = "-0.015 0 0 " euler = "0 -90 0"/>
+                <body name = "finger21" pos = "-0.03 0 0">
+                    <joint name="joint21" type="hinge" axis="0 1 0"/>
+                    <geom name = "link21" type = "capsule" size = "0.005 0.01" pos = "-0.015 0 0 " euler = "0 -90 0"/>
+                    <body name = "finger22" pos = "-0.03 0 0">
+                        <joint name="joint22" type="hinge" axis="0 1 0"/>
+                        <geom name = "link22" type = "capsule" size = "0.005 0.01" pos = "-0.015 0 0 " euler = "0 -90 0"/>
+                    </body>
+                </body>
+            </body>
+            <!-- in the -y direction -->
+            <body name = "finger30" pos = "0.00 -0.04 0">
+                <joint name="joint34" type="hinge" axis="0 0 1" range="-45 45"/>
+                <joint name="joint30" type="hinge" axis="-1 0 0"/>
+                <geom name = "link30" type = "capsule" size = "0.005 0.01" pos = "0 -0.015 0" euler = "90 0 0"/>
+                <body name = "finger31" pos = "0 -0.03 0">
+                    <joint name="joint31" type="hinge" axis="-1 0 0"/>
+                    <geom name = "link31" type = "capsule" size = "0.005 0.01" pos = "0 -0.015 0" euler = "90 0 0"/>
+                    <body name = "finger32" pos = "0 -0.03 0">
+                        <joint name = "joint32" type = "hinge" axis = "-1 0 0"/>
+                        <geom name = "link32" type = "capsule" size = "0.005 0.01" pos = "0 -0.015 0" euler = "90 0 0"/>
+                    </body>
+                </body>
+            </body>
+        </body>
+    </worldbody>
+
+
+
+
+    <actuator>
+        <position name = "A_joint04" joint = "joint04" ctrlrange="-0.785 0.785"/>        
+        <position name = "A_joint00" joint = "joint00"/>
+        <position name = "A_joint01" joint = "joint01"/>
+        <position name = "A_joint02" joint = "joint02"/>
+        <position name = "A_joint14" joint = "joint14" ctrlrange="-0.785 0.785"/>        
+        <position name = "A_joint10" joint = "joint10"/>
+        <position name = "A_joint11" joint = "joint11"/>
+        <position name = "A_joint12" joint = "joint12"/>
+        <position name = "A_joint24" joint = "joint24" ctrlrange="-0.785 0.785"/>        
+        <position name = "A_joint20" joint = "joint20"/>
+        <position name = "A_joint21" joint = "joint21"/>
+        <position name = "A_joint22" joint = "joint22"/>
+        <position name = "A_joint34" joint = "joint34" ctrlrange="-0.785 0.785"/>        
+        <position name = "A_joint30" joint = "joint30"/>
+        <position name = "A_joint31" joint = "joint31"/>
+        <position name = "A_joint32" joint = "joint32"/>
+        <motor name = "A_xslide" joint = "x_slide"/>
+        <motor name = "A_yslide" joint = "y_slide"/>
+        <motor name = "A_zhinge" joint = "z_hinge"/>
+    </actuator>
+
+</mujoco>
